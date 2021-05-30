@@ -4,22 +4,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class  EmployeePayrollDBService {
+    private static EmployeePayrollDBService employeePayrollDBService;
+    private PreparedStatement employeePayrollDataStatement;
+
+    public static EmployeePayrollDBService getInstant() {
+        if (employeePayrollDBService == null)
+            employeePayrollDBService = new EmployeePayrollDBService();
+        return employeePayrollDBService;
+    }
 
     private Connection getConnection() throws SQLException {
         String jdbcURL = "jdbc:mysql://localhost:3306/payroll_service?useSSL=false";
         String username = "root";
         String password = "1111";
-        System.out.println("connecting to database");
         Connection connection = DriverManager.getConnection(jdbcURL,username,password);
-        System.out.println("Connected Successfully!");
         return connection;
     }
 
     public List<EmployeePayrollData> readData() {
         String sql = "SELECT * FROM employee_payroll";
         List<EmployeePayrollData> employeePayrollList = new ArrayList<EmployeePayrollData>();
-        try {
-            Connection connection = this.getConnection();
+        try (Connection connection = this.getConnection()){
             Statement  statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery(sql);
             while (resultSet.next()) {
@@ -34,22 +39,61 @@ public class  EmployeePayrollDBService {
         }
         return employeePayrollList;
     }
-        /*public static void main(String[] args) {
-        try {
 
-            Class.forName("com.mysql.jdbc.Driver");
-            System.out.println("Driver Loaded");
-        }catch (SQLException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        listDrivers();
+    public List<EmployeePayrollData> getEmployeePayrollData(String name) {
+            List<EmployeePayrollData> employeePayrollDataList = null;
+            if (this.employeePayrollDataStatement == null)
+                this.prepareStatementForEmployeeData();
+            try {
+                employeePayrollDataStatement.setString(1, name);
+                ResultSet resultSet;
+                resultSet = employeePayrollDataStatement.executeQuery();
+                employeePayrollDataList = this.getEmployeePayrollData(resultSet);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            return employeePayrollDataList;
     }
 
-    private static void listDrivers() {
-        Enumeration<Driver> driverList = DriverManager.getDrivers();
-        while (driverList.hasMoreElements()) {
-            Driver driverClass = (Driver) driverList.nextElement();
-            System.out.println(" "+driverClass.getClass().getName());
+    private List<EmployeePayrollData> getEmployeePayrollData(ResultSet resultSet) {
+        List<EmployeePayrollData> employeePayrollDataList = new ArrayList<>();
+            try {
+                while (resultSet.next()) {
+                    int id = resultSet.getInt("id");
+                    String name = resultSet.getString("name");
+                    double salary = resultSet.getDouble("salary");
+                    LocalDate startDate = null;
+                    startDate = resultSet.getDate("start").toLocalDate();
+                    employeePayrollDataList.add(new EmployeePayrollData(id, name, salary, startDate));
+                }
+            }catch (SQLException e) {
+                e.printStackTrace();
+            }
+        return employeePayrollDataList;
+    }
+
+    private void prepareStatementForEmployeeData() {
+        try {
+            Connection connection = this.getConnection();
+            String sql = "SELECT * FROM employee_payroll WHERE name = ?";
+            employeePayrollDataStatement = connection.prepareStatement(sql);
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-    }*/
+    }
+
+    public int updateEmployeeData (String name, double salary) {
+        return this.updateEmployeeDataUsingStatement(name, salary);
+    }
+
+    private int updateEmployeeDataUsingStatement(String name, double salary) {
+        String sql = String.format("update employee_payroll set salary = %.2f where name = '%s';", salary, name);
+        try (Connection connection = this.getConnection()){
+            Statement statement = connection.createStatement();
+            return statement.executeUpdate(sql);
+        }catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 }
