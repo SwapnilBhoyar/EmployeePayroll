@@ -97,4 +97,52 @@ public class  EmployeePayrollDBService {
         }
         return 0;
     }
+
+    public List<EmployeePayrollData> retrieveEmployeePayrollDataRange(String startDate, String endDate) {
+        List<EmployeePayrollData> employeePayrollDataList = null;
+        try {
+            if (this.employeePayrollDataStatement == null)
+                this.prepareStatementForRetrieveEmployeePayrollDateRange();
+            employeePayrollDataStatement.setString(1, startDate);
+            employeePayrollDataStatement.setString(2, endDate);
+            ResultSet resultSet;
+            resultSet = employeePayrollDataStatement.executeQuery();
+            employeePayrollDataList = this.retrieveEmployeePayrollDataRange(resultSet);
+        }catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return employeePayrollDataList;
+    }
+
+    private List<EmployeePayrollData> retrieveEmployeePayrollDataRange(ResultSet resultSet) {
+        List<EmployeePayrollData> employeePayrollDataList = new ArrayList<>();
+        try {
+            while (resultSet.next()){
+                int id = resultSet.getInt("id");
+                String name = resultSet.getString("name");
+                double salary = resultSet.getDouble("salary");
+                LocalDate startDate = resultSet.getDate("start").toLocalDate();
+                employeePayrollDataList.add(new EmployeePayrollData(id, name, salary, startDate));
+            }
+        }catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return employeePayrollDataList;
+    }
+
+    private void prepareStatementForRetrieveEmployeePayrollDateRange() {
+        Connection connection = null;
+        try {
+            connection = this.getConnection();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        String sql = "SELECT * FROM employee_payroll WHERE start BETWEEN ? AND ?";
+        try {
+            assert connection != null;
+            employeePayrollDataStatement = connection.prepareStatement(sql);
+        } catch (SQLException throwable) {
+            throwable.printStackTrace();
+        }
+    }
 }

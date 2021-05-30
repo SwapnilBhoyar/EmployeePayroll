@@ -41,4 +41,9 @@ public class EmployeePayrollService {
         if (employeePayrollData != null)
             employeePayrollData.salary = salary;
     }
+
+    public List<EmployeePayrollData> retrieveEmployyesForGivenDataRange(String startDate, String endDate) {
+        List<EmployeePayrollData> employeePayrollDataList = employeePayrollDBService.retrieveEmployeePayrollDataRange(startDate, endDate);
+        return employeePayrollDataList;
+    }
 }
