@@ -1,4 +1,5 @@
 import java.util.List;
+import java.util.Map;
 
 public class EmployeePayrollService {
 
@@ -6,6 +7,22 @@ public class EmployeePayrollService {
 
     private List<EmployeePayrollData> employeePayrollDataList;
     private EmployeePayrollDBService employeePayrollDBService;
+
+    public Map<String, Double> readSumSalaryByGender() {
+        return employeePayrollDBService.getSumSalaryByGender();
+    }
+
+    public Map<String, Double> readMinSalaryByGender() {
+        return employeePayrollDBService.getMinSalaryByGender();
+    }
+
+    public Map<String, Double> readMaxSalaryByGender() {
+        return employeePayrollDBService.getMaxSalaryByGender();
+    }
+
+    public Map<String, Integer> getCountByGender() {
+        return employeePayrollDBService.getCountByGender();
+    }
 
     public EmployeePayrollService(List<EmployeePayrollData> employeePayrollDataList) {
         this();
@@ -45,5 +62,8 @@ public class EmployeePayrollService {
     public List<EmployeePayrollData> retrieveEmployyesForGivenDataRange(String startDate, String endDate) {
         List<EmployeePayrollData> employeePayrollDataList = employeePayrollDBService.retrieveEmployeePayrollDataRange(startDate, endDate);
         return employeePayrollDataList;
+    }
+    public Map<String, Double> readAverageSalaryByGender() {
+        return employeePayrollDBService.getAverageSalaryByGender();
     }
 }
